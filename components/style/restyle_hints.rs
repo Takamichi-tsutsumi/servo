@@ -687,6 +687,7 @@ impl DependencySet {
 #[cfg(all(test, feature = "servo"))]
 fn smoke_restyle_hints() {
     use cssparser::Parser;
+    use selectors::parser::SelectorList;
     use selector_parser::SelectorParser;
     use stylesheets::{Origin, Namespaces};
     let namespaces = Namespaces::default();
@@ -698,8 +699,10 @@ fn smoke_restyle_hints() {
     let mut dependencies = DependencySet::new();
 
     let mut p = Parser::new(":not(:active) ~ label");
-    let selector = ComplexSelector::parse(&parser, &mut p).unwrap();
-    dependencies.note_selector(&selector);
+    let selectors = SelectorList::parse(&parser, &mut p).unwrap();
+    assert_eq!((selectors.0).len(), 1);
+    let selector = (selectors.0).first().unwrap();
+    dependencies.note_selector(selector);
     assert_eq!(dependencies.len(), 1);
     assert_eq!(dependencies.state_deps.len(), 1);
     assert!(!dependencies.state_deps[0].sensitivities.states.is_empty());
